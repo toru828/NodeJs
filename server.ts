@@ -138,6 +138,14 @@ createConnection(ormOptions)
             // get a user repository to perform operations with user
             const userRepository = getManager().getRepository(User);
         
+            // load a user id
+            const user = await userRepository.findOne(+req.params.id);
+
+            if (!user) {
+                res.send("The id is not existing. Please check the id!")
+                return;
+            }
+
             userRepository.delete(req.params.id);
             res.end();
             return;
