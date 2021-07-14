@@ -8,6 +8,7 @@ import * as bodyParser from "body-parser";
 import { getManager } from "typeorm";
 import { User } from "./entity/User";
 
+import * as jwt from 'jsonwebtoken';
 
 const ormOptions: any = {
 	type: 'mysql',
@@ -28,7 +29,38 @@ createConnection(ormOptions)
 		console.log('3306: [SUCCESS] Database connected!');
 		// create express app
 		const app = express();
+        const TOKEN_SECRET = '5f1b20d6b033c6097befa8be3486a829587fe2f90a832bd3ff9d42710a4'
 		app.use(bodyParser.json());
+        function generateAccessToken(email) {
+            return jwt.sign(email, TOKEN_SECRET, { expiresIn: '1800s' });
+          }
+        
+        function authenticateToken(req, res, next) {
+            const authHeader = req.headers['authorization']
+            const token = authHeader && authHeader.split(' ')[1]
+          
+            if (token == null) return res.sendStatus(401)
+          
+            jwt.verify(token, TOKEN_SECRET as string, (err: any, user: any) => {
+              console.log(err)
+          
+              if (err) return res.sendStatus(403)
+          
+              req.user = user
+          
+              next()
+            })
+          }          
+
+          app.get('/listUsers', authenticateToken, async function (req, res) {
+            // get a user repository to perform operations with user
+            const userRepository = getManager().getRepository(User);
+        
+            const users = await userRepository.find();
+        
+            // return loaded users
+            res.send(users);
+        })        
 
 		// Routes Definitions
 		app.get('/:id', async function (req, res) {
@@ -68,6 +100,27 @@ createConnection(ormOptions)
             // return loaded users
             res.send(users);
         })
+
+        app.post('/login', async (req, res) => {
+            const userRepository = getManager().getRepository(User);
+            
+            // load a user by email and password
+            const user = await userRepository.find({
+                where: {
+                    'email': req.body.email,
+                    'password': req.body.password
+                }
+            });
+            // return 403 if user is not existing
+            if (!user || user.length === 0 ) {
+                res.sendStatus(403)
+            }
+        
+            // generate token and return to client
+            const token = generateAccessToken({ email: req.body.email });
+            res.json(token);
+        });
+        
         
         app.delete('/:id', async function (req, res) {
             // First read existing users.
