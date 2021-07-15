@@ -188,7 +188,8 @@ createConnection(ormOptions)
                 email: req.body.email,
                 name: req.body.name,
                 password: req.body.password,
-                profession: req.body.profession
+                profession: req.body.profession,
+                id: +req.params.id
             }
 
             if (!user2.email) {
@@ -219,7 +220,7 @@ createConnection(ormOptions)
                 }
             }
 
-            const users = await userRepository.update({id: +req.params.id} ,user2);
+            const users = await userRepository.save(user2);
         
             // return loaded users
             res.send(users);
