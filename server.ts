@@ -149,7 +149,31 @@ createConnection(ormOptions)
             userRepository.delete(req.params.id);
             res.end();
             return;
-        })        
+        })
+
+        app.put('/:id', async function (req, res) {
+            const userRepository = getManager().getRepository(User);
+            const user1 = await userRepository.findOne(+req.params.id);
+
+            if (!user1) {
+                res.send("The id is not existing. Please check the id!")
+                return;
+            }
+            
+            const user2 = {
+                email: req.body.email,
+                name: req.body.name,
+                password: req.body.password,
+                profession: req.body.profession,
+                id: +req.params.id
+            };
+
+            const users = await userRepository.save(user2);
+        
+            // return loaded users
+            res.send(users);
+
+        })
 
 		// run app
 		app.listen(3000);
