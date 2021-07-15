@@ -153,14 +153,14 @@ createConnection(ormOptions)
 
         app.put('/:id', async function (req, res) {
             const userRepository = getManager().getRepository(User);
-            const user1 = await userRepository.findOne(+req.params.id);
+            var user = await userRepository.findOne(+req.params.id);
 
-            if (!user1) {
+            if (!user) {
                 res.send("The id is not existing. Please check the id!")
                 return;
             }
             
-            const user2 = {
+            user = {
                 email: req.body.email,
                 name: req.body.name,
                 password: req.body.password,
@@ -168,7 +168,46 @@ createConnection(ormOptions)
                 id: +req.params.id
             };
 
-            const users = await userRepository.save(user2);
+            const users = await userRepository.save(user);
+        
+            // return loaded users
+            res.send(users);
+
+        })
+
+        app.patch('/:id', async function (req, res) {
+            const userRepository = getManager().getRepository(User);
+            const user1 = await userRepository.findOne(+req.params.id);
+
+            if (!user1) {
+                res.send("The id is not existing. Please check the id!")
+                return;
+            }
+
+            let user2 = {
+                email: req.body.email,
+                name: req.body.name,
+                password: req.body.password,
+                profession: req.body.profession
+            }
+
+            if (!user2.email) {
+                user2.email = user1.email;
+            }
+
+            if (!user2.name) {
+                user2.name = user1.name;
+            }
+
+            if (!user2.password) {
+                user2.password = user1.password;
+            }
+
+            if(!user2.profession) {
+                user2.profession = user1.profession;
+            }
+
+            const users = await userRepository.update({id: +req.params.id} ,user2);
         
             // return loaded users
             res.send(users);
