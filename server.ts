@@ -193,18 +193,30 @@ createConnection(ormOptions)
 
             if (!user2.email) {
                 user2.email = user1.email;
+                if (req.body.email === "") {
+                    user2.email = "";
+                }
             }
 
             if (!user2.name) {
                 user2.name = user1.name;
+                if (req.body.name === "") {
+                    user2.name = "";
+                }
             }
 
             if (!user2.password) {
                 user2.password = user1.password;
+                if (req.body.password === "") {
+                    user2.password = "";
+                }
             }
 
-            if(!user2.profession) {
+            if (!user2.profession) {
                 user2.profession = user1.profession;
+                if (req.body.profession === "") {
+                    user2.profession = "";
+                }
             }
 
             const users = await userRepository.update({id: +req.params.id} ,user2);
