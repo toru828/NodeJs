@@ -47,10 +47,9 @@ createConnection(ormOptions)
               if (err) return res.sendStatus(403)
           
               req.user = user
-          
               next()
             })
-          }          
+          }
 
           app.get('/listUsers', authenticateToken, async function (req, res) {
             // get a user repository to perform operations with user
@@ -177,38 +176,18 @@ createConnection(ormOptions)
 
         app.patch('/:id', async function (req, res) {
             const userRepository = getManager().getRepository(User);
-            const user1 = await userRepository.findOne(+req.params.id);
-
-            if (!user1) {
+            const user = await userRepository.findOne(+req.params.id);
+            if (!user) {
                 res.send("The id is not existing. Please check the id!")
                 return;
             }
 
-            let user2 = {
-                email: req.body.email,
-                name: req.body.name,
-                password: req.body.password,
-                profession: req.body.profession,
-                id: +req.params.id
-            }
-
-            if (!user2.email && req.body.email !== "") {
-                user2.email = user1.email;
-            }
-
-            if (!user2.name && req.body.name !== "") {
-                user2.name = user1.name;
-            }
-
-            if (!user2.password && req.body.password !== "") {
-                user2.password = user1.password;
-            }
-
-            if (!user2.profession && req.body.profession !== "") {
-                user2.profession = user1.profession;
-            }
-
-            const users = await userRepository.save(user2);
+            const users = await userRepository.save(
+                {
+                    id: +req.params.id,
+                    ...req.body
+                }
+            );
         
             // return loaded users
             res.send(users);
