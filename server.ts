@@ -47,10 +47,9 @@ createConnection(ormOptions)
               if (err) return res.sendStatus(403)
           
               req.user = user
-          
               next()
             })
-          }          
+          }
 
           app.get('/listUsers', authenticateToken, async function (req, res) {
             // get a user repository to perform operations with user
@@ -138,10 +137,62 @@ createConnection(ormOptions)
             // get a user repository to perform operations with user
             const userRepository = getManager().getRepository(User);
         
+            // load a user id
+            const user = await userRepository.findOne(+req.params.id);
+
+            if (!user) {
+                res.send("The id is not existing. Please check the id!")
+                return;
+            }
+
             userRepository.delete(req.params.id);
             res.end();
             return;
-        })        
+        })
+
+        app.put('/:id', async function (req, res) {
+            const userRepository = getManager().getRepository(User);
+            var user = await userRepository.findOne(+req.params.id);
+
+            if (!user) {
+                res.send("The id is not existing. Please check the id!")
+                return;
+            }
+            
+            user = {
+                email: req.body.email,
+                name: req.body.name,
+                password: req.body.password,
+                profession: req.body.profession,
+                id: +req.params.id
+            };
+
+            const users = await userRepository.save(user);
+        
+            // return loaded users
+            res.send(users);
+
+        })
+
+        app.patch('/:id', async function (req, res) {
+            const userRepository = getManager().getRepository(User);
+            const user = await userRepository.findOne(+req.params.id);
+            if (!user) {
+                res.send("The id is not existing. Please check the id!")
+                return;
+            }
+
+            const users = await userRepository.save(
+                {
+                    id: +req.params.id,
+                    ...req.body
+                }
+            );
+        
+            // return loaded users
+            res.send(users);
+
+        })
 
 		// run app
 		app.listen(3000);
